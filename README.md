@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/pullframe-banner.svg" alt="Pullframe - A link in. The video out." width="100%">
+  <img src="docs/videoextractor-banner.svg" alt="VideoExtractor - Paste a webpage link. Download the video." width="100%">
 </p>
 
 <p align="center">
@@ -7,7 +7,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/KelDakroury/pullframe/actions/workflows/tests.yml"><img alt="Tests" src="https://github.com/KelDakroury/pullframe/actions/workflows/tests.yml/badge.svg"></a>
+  <a href="https://github.com/KelDakroury/videoextractor/actions/workflows/tests.yml"><img alt="Tests" src="https://github.com/KelDakroury/videoextractor/actions/workflows/tests.yml/badge.svg"></a>
   <img alt="Python 3.9+" src="https://img.shields.io/badge/Python-3.9%2B-17211c?style=flat-square">
   <img alt="Docker ready" src="https://img.shields.io/badge/Docker-ready-17211c?style=flat-square">
   <img alt="No database required" src="https://img.shields.io/badge/database-not_required-d9e65c?style=flat-square&labelColor=17211c">
@@ -23,17 +23,17 @@
 
 ---
 
-Pullframe is a small, self-contained media extraction service. A user submits
-the URL of a public page, the server discovers its video streams, downloads the
-best available rendition, combines separate audio and video tracks when needed,
-and returns a browser-ready file.
+VideoExtractor is a small, self-contained media extraction service. A user
+submits the URL of a public page, the server discovers its video streams,
+downloads the best available rendition, combines separate audio and video
+tracks when needed, and returns a browser-ready file.
 
 The web application uses temporary local files and in-memory job state. It does
 not require a database, user accounts, or permanent media storage.
 
 > [!IMPORTANT]
-> Only download media you own or have permission to use. Pullframe does not
-> bypass DRM, authentication, paywalls, or encrypted streams.
+> Only download media you own or have permission to use. VideoExtractor does
+> not bypass DRM, authentication, paywalls, or encrypted streams.
 
 ## Highlights
 
@@ -58,8 +58,8 @@ Requirements:
 - `ffmpeg`, or the Swift toolchain on macOS
 
 ```bash
-git clone git@github.com:KelDakroury/pullframe.git
-cd pullframe
+git clone git@github.com:KelDakroury/videoextractor.git
+cd videoextractor
 python3 webapp.py
 ```
 
@@ -79,8 +79,8 @@ python3 -m pip install -r requirements.txt
 The image installs `ffmpeg`, runs as a non-root user, and listens on port 8000.
 
 ```bash
-docker build -t pullframe .
-docker run --rm -p 8000:8000 pullframe
+docker build -t videoextractor .
+docker run --rm -p 8000:8000 videoextractor
 ```
 
 ## How It Works
@@ -173,7 +173,7 @@ status becomes `ready` or `failed`.
 
 ## Deployment
 
-Pullframe is designed for a small, single-instance container deployment.
+VideoExtractor is designed for a small, single-instance container deployment.
 Railway, Render, Fly.io, and similar Docker hosts can run the included image.
 
 Recommended deployment settings:
@@ -265,11 +265,11 @@ MEDIA_SCRAPER_DRIVER=firefox python3 -m mediascraper.general 'https://example.co
 
 The Instagram, Twitter, and other legacy modules are retained from the upstream
 project, but their third-party APIs have changed significantly and they are not
-part of the tested Pullframe web workflow.
+part of the tested VideoExtractor workflow.
 
 ## Attribution
 
-Pullframe is a substantial modernization of
+VideoExtractor is a substantial modernization of
 [Elvis Yu-Jing Lin's original media-scraper](https://github.com/elvisyjlin/media-scraper).
 The original copyright and MIT license are preserved.
 

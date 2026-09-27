@@ -33,7 +33,7 @@ class WebAppTests(unittest.TestCase):
     def test_homepage_and_health_endpoint(self):
         with urllib.request.urlopen(self.base_url + '/') as response:
             homepage = response.read().decode('utf-8')
-        self.assertIn('Pullframe', homepage)
+        self.assertIn('VideoExtractor', homepage)
 
         with urllib.request.urlopen(self.base_url + '/api/health') as response:
             health = json.loads(response.read().decode('utf-8'))
