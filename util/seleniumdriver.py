@@ -8,8 +8,11 @@ import platform
 from os import chmod, makedirs, stat
 from os.path import dirname, exists, join
 from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
+from selenium.common.exceptions import SessionNotCreatedException
+from selenium.webdriver.chrome.options import Options as ChromeOptions
+from selenium.webdriver.chrome.service import Service as ChromeService
+from selenium.webdriver.firefox.options import Options as FirefoxOptions
+from selenium.webdriver.firefox.service import Service as FirefoxService
 
 SRC_URL_DICT = {
     'webdriver/phantomjsdriver_2.1.1_win32/phantomjs.exe': 'https://www.dropbox.com/s/y1sc5ujzhdqb9f4/phantomjs.exe?dl=1', 
@@ -28,42 +31,63 @@ SRC_URL_DICT = {
 }
 
 def get(driverType, localDriver=True, path='.'):
-    driverType = str(driverType)
-    if driverType == 'PhantomJS':
-        # phantomjs_options.add_argument("--disable-web-security")
-        if localDriver:
-            source = get_source(driverType, path)
-            driver = webdriver.PhantomJS(executable_path=source, service_log_path=join(path, 'phantomjs.log'), service_args=["--remote-debugger-port=9000", "--web-security=false"])
-            # driver = webdriver.PhantomJS(executable_path=source, service_args=["--remote-debugger-port=9000", "--web-security=false"])
-        else:
-            driver = webdriver.PhantomJS(service_log_path=join(path, 'phantomjs.log'), service_args=["--remote-debugger-port=9000", "--web-security=false"])
-            # driver = webdriver.PhantomJS(service_args=["--remote-debugger-port=9000", "--web-security=false"])
-    elif driverType == 'Chrome':
-        desired = DesiredCapabilities.CHROME
-        desired['loggingPrefs'] = {'browser': 'ALL'}
-        chrome_options = Options()
+    driverType = str(driverType).strip()
+    normalized = driverType.lower()
+
+    if normalized == 'phantomjs':
+        raise RuntimeError(
+            'PhantomJS is no longer supported by modern Selenium. '
+            'Use the general scraper in requests mode, or select a supported '
+            'browser driver such as Safari, Chrome, or Firefox.'
+        )
+
+    if normalized == 'chrome':
+        chrome_options = ChromeOptions()
         chrome_options.add_argument("--start-maximized")
         chrome_options.add_argument("--disable-infobars")
         chrome_options.add_argument("--disable-web-security")
-        # chrome_options.add_argument("--window-size=800,600")
-        # chrome_options.add_argument("--headless") # will not show the Chrome browser window
+        chrome_options.set_capability('goog:loggingPrefs', {'browser': 'ALL'})
+
+        kwargs = {'options': chrome_options}
         if localDriver:
-            source = get_source(driverType, path)
-            driver = webdriver.Chrome(executable_path=source, service_log_path=join(path, 'chromedriver.log'), desired_capabilities=desired, chrome_options=chrome_options)
-        else:
-            driver = webdriver.Chrome(service_log_path=join(path, 'chromedriver.log'), desired_capabilities=desired, chrome_options=chrome_options)
-    elif driverType == 'Firefox':
-        # desired = DesiredCapabilities.FIREFOX
-        # desired['loggingPrefs'] = {'browser': 'ALL'}
-        firefox_options = Options()
+            source = get_source('Chrome', path)
+            kwargs['service'] = ChromeService(
+                executable_path=source,
+                log_output=join(path, 'chromedriver.log'),
+            )
+        return webdriver.Chrome(**kwargs)
+
+    if normalized == 'firefox':
+        firefox_options = FirefoxOptions()
         firefox_options.add_argument("--start-maximized")
-        firefox_options.add_argument("--disable-infobars")
+
+        kwargs = {'options': firefox_options}
         if localDriver:
-            source = get_source(driverType, path)
-            driver = webdriver.Firefox(executable_path=source, service_log_path=join(path, 'geckodriver.log'), firefox_options=firefox_options)
-        else:
-            driver = webdriver.Firefox(service_log_path=join(path, 'geckodriver.log'), firefox_options=firefox_options)
-    return driver
+            source = get_source('Firefox', path)
+            kwargs['service'] = FirefoxService(
+                executable_path=source,
+                log_output=join(path, 'geckodriver.log'),
+            )
+        return webdriver.Firefox(**kwargs)
+
+    if normalized == 'safari':
+        try:
+            return webdriver.Safari()
+        except SessionNotCreatedException as exc:
+            message = str(exc)
+            if 'Allow remote automation' in message or 'remote automation' in message:
+                raise RuntimeError(
+                    'Safari WebDriver is disabled. Enable it in Safari first:\n'
+                    '1. Open Safari.\n'
+                    '2. Safari -> Settings -> Advanced, then enable developer features if needed.\n'
+                    '3. In the Develop menu, enable "Allow Remote Automation".\n'
+                    '4. Retry with MEDIA_SCRAPER_DRIVER=safari.\n'
+                    'If you do not need JavaScript rendering, run the scraper without '
+                    'MEDIA_SCRAPER_DRIVER to use requests mode.'
+                ) from exc
+            raise
+
+    raise Exception('Not supported driver type [%s].' % driverType)
 
 def get_source(driverType, path='.'):
     driverType = str(driverType)

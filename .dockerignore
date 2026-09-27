@@ -1,0 +1,11 @@
+.git
+.DS_Store
+.swift-module-cache
+__pycache__
+*.pyc
+credentials.json
+download
+download_*
+path
+webdriver
+venv

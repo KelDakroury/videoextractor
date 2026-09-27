@@ -1,0 +1,36 @@
+name: Tests
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Compile Python sources
+        run: >
+          python -m py_compile
+          webapp.py
+          video_service.py
+          mediascrapers.py
+          util/network.py
+          util/url.py
+          util/file.py
+          util/media.py
+
+      - name: Run tests
+        run: python -m unittest discover -s tests -v

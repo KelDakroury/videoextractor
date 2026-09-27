@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Extract a downloadable video from a public webpage.">
+  <title>Pullframe | bring the video home</title>
+  <link rel="stylesheet" href="/assets/styles.css">
+</head>
+<body>
+  <div class="page-grain" aria-hidden="true"></div>
+  <header class="site-header">
+    <a class="brand" href="/" aria-label="Pullframe home">
+      <span class="brand-mark" aria-hidden="true"><span></span></span>
+      <span>Pullframe</span>
+    </a>
+    <span class="header-note">Public media extractor</span>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="hero-copy">
+        <p class="eyebrow"><span>01</span> Paste any public page</p>
+        <h1>A link in.<br><em>The video out.</em></h1>
+        <p class="lede">
+          Drop in a page containing a video. Pullframe finds the source,
+          prepares the file, and hands it back ready to play.
+        </p>
+
+        <form class="url-form" id="url-form">
+          <label for="url-input">Page URL</label>
+          <div class="input-shell">
+            <input
+              id="url-input"
+              name="url"
+              type="url"
+              inputmode="url"
+              autocomplete="url"
+              placeholder="https://example.com/page-with-video"
+              required
+            >
+            <button class="paste-button" id="paste-button" type="button">Paste</button>
+          </div>
+          <button class="submit-button" id="submit-button" type="submit">
+            <span>Find the video</span>
+            <span class="button-arrow" aria-hidden="true">&#8599;</span>
+          </button>
+          <p class="form-error" id="form-error" role="alert"></p>
+        </form>
+
+        <button class="example-link" id="example-link" type="button">
+          Try the foot anatomy page
+        </button>
+        <p class="permission-note">
+          Use only with media you own or have permission to download.
+          Protected and DRM-encrypted video is not supported.
+        </p>
+      </div>
+
+      <aside class="process-card" aria-label="How it works">
+        <div class="card-topline">
+          <span>THE PROCESS</span>
+          <span class="live-dot">READY</span>
+        </div>
+        <ol class="process-list">
+          <li>
+            <span class="step-number">01</span>
+            <div>
+              <strong>Inspect</strong>
+              <p>Read the public page and locate its player.</p>
+            </div>
+          </li>
+          <li>
+            <span class="step-number">02</span>
+            <div>
+              <strong>Resolve</strong>
+              <p>Find the best available video and audio streams.</p>
+            </div>
+          </li>
+          <li>
+            <span class="step-number">03</span>
+            <div>
+              <strong>Prepare</strong>
+              <p>Combine the tracks into one playable MP4.</p>
+            </div>
+          </li>
+        </ol>
+        <div class="card-footer">
+          <span>Temporary files</span>
+          <span>Expire after 1 hour</span>
+        </div>
+      </aside>
+    </section>
+
+    <section class="status-panel" id="status-panel" aria-live="polite" hidden>
+      <div class="status-heading">
+        <div>
+          <p class="eyebrow"><span>02</span> Working on it</p>
+          <h2 id="status-title">Inspecting the page</h2>
+        </div>
+        <span class="status-percent" id="status-percent">10%</span>
+      </div>
+      <p class="status-source" id="status-source"></p>
+      <div
+        class="progress-track"
+        id="progress-track"
+        role="progressbar"
+        aria-label="Video preparation progress"
+        aria-valuemin="0"
+        aria-valuemax="100"
+        aria-valuenow="10"
+      >
+        <span id="progress-fill"></span>
+      </div>
+      <div class="stage-row" id="stage-row">
+        <span data-stage="extracting">Inspect</span>
+        <span data-stage="downloading">Download</span>
+        <span data-stage="processing">Prepare</span>
+        <span data-stage="ready">Ready</span>
+      </div>
+      <div class="status-error" id="status-error" hidden>
+        <p id="status-error-message"></p>
+        <button id="try-again-button" type="button">Try another link</button>
+      </div>
+    </section>
+
+    <section class="results" id="results" hidden>
+      <div class="results-heading">
+        <div>
+          <p class="eyebrow"><span>03</span> Ready to keep</p>
+          <h2 id="result-title">Your video</h2>
+        </div>
+        <p id="expiry-note">Available for 1 hour</p>
+      </div>
+      <div class="video-grid" id="video-grid"></div>
+      <button class="start-over" id="start-over-button" type="button">
+        Extract another video
+      </button>
+    </section>
+  </main>
+
+  <footer>
+    <span>Pullframe / local media utility</span>
+    <span>No accounts. No permanent storage.</span>
+  </footer>
+
+  <script src="/assets/app.js"></script>
+</body>
+</html>

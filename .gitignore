@@ -1,4 +1,6 @@
 __pycache__/
+.DS_Store
+.swift-module-cache/
 .ipynb_checkpoints/
 download/
 download_*/
