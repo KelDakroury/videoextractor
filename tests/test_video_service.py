@@ -5,6 +5,7 @@ from unittest.mock import patch
 from video_service import (
     VideoProcessingError,
     _provider_error,
+    _provider_extractor_args,
     _provider_for_url,
     extract_videos,
 )
@@ -63,6 +64,17 @@ class ProviderVideoTests(unittest.TestCase):
         error = _provider_error('Instagram', 'HTTP Error 429: Too Many Requests')
         self.assertIsInstance(error, VideoProcessingError)
         self.assertIn('rate-limited', str(error))
+
+    def test_uses_cloud_compatible_youtube_client(self):
+        self.assertEqual(
+            _provider_extractor_args('YouTube'),
+            {
+                'youtube': {
+                    'player_client': ['mweb'],
+                },
+            },
+        )
+        self.assertIsNone(_provider_extractor_args('Bilibili'))
 
 
 if __name__ == '__main__':

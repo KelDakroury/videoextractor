@@ -133,6 +133,18 @@ def _bounded_provider_format(max_video_height):
     ).format(height=max_video_height)
 
 
+def _provider_extractor_args(provider):
+    if provider == 'YouTube':
+        # The mweb client exposes a progressive MP4 on cloud hosts where
+        # YouTube blocks the default clients unless a PO token is available.
+        return {
+            'youtube': {
+                'player_client': ['mweb'],
+            },
+        }
+    return None
+
+
 def _extract_with_ytdlp(
     source_url,
     output_dir,
@@ -266,6 +278,9 @@ def _extract_with_ytdlp(
             'res:{}'.format(max_video_height),
             'acodec:aac',
         ]
+    extractor_args = _provider_extractor_args(provider)
+    if extractor_args is not None:
+        options['extractor_args'] = extractor_args
 
     _notify(
         progress_callback,
