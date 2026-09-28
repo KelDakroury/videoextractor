@@ -12,7 +12,7 @@
 
 <p align="center">
   <a href="https://github.com/KelDakroury/videoextractor/actions/workflows/tests.yml"><img alt="Tests" src="https://github.com/KelDakroury/videoextractor/actions/workflows/tests.yml/badge.svg"></a>
-  <img alt="Python 3.9+" src="https://img.shields.io/badge/Python-3.9%2B-17211c?style=flat-square">
+  <img alt="Python 3.10+" src="https://img.shields.io/badge/Python-3.10%2B-17211c?style=flat-square">
   <img alt="Docker ready" src="https://img.shields.io/badge/Docker-ready-17211c?style=flat-square">
   <img alt="No database required" src="https://img.shields.io/badge/database-not_required-d9e65c?style=flat-square&labelColor=17211c">
   <img alt="MIT license" src="https://img.shields.io/badge/license-MIT-e64b2f?style=flat-square">
@@ -45,7 +45,7 @@ not require a database, user accounts, or permanent media storage.
 | | Capability |
 | --- | --- |
 | **Simple workflow** | Paste a URL, follow live progress, preview the result, and download it |
-| **Video discovery** | Finds direct video sources, HLS playlists, Vimeo players, and supported nested embeds |
+| **Video discovery** | Finds YouTube, Instagram, Bilibili, direct sources, HLS playlists, Vimeo players, and supported embeds |
 | **Automatic muxing** | Combines separate HLS video and audio tracks into one MP4 |
 | **Seekable playback** | Serves byte ranges so browser video controls and seeking work correctly |
 | **Temporary by design** | Jobs expire automatically and container restarts discard all generated files |
@@ -59,21 +59,22 @@ not require a database, user accounts, or permanent media storage.
 
 Requirements:
 
-- Python 3.9 or newer
+- Python 3.10 or newer
 - `ffmpeg`, or the Swift toolchain on macOS
+- `yt-dlp` and a supported JavaScript runtime for social video providers
 
 ```bash
 git clone git@github.com:KelDakroury/videoextractor.git
 cd videoextractor
+python3 -m pip install -r requirements-web.txt
 python3 webapp.py
 ```
 
 Open [http://127.0.0.1:8000](http://127.0.0.1:8000), paste a public page URL,
 and select **Find the video**.
 
-The web application itself has no required Python packages. Install the legacy
-scraper dependencies only when browser automation or the older social-media
-commands are needed:
+Install the legacy scraper dependencies only when browser automation or the
+older command-line tools are needed:
 
 ```bash
 python3 -m pip install -r requirements.txt
@@ -81,7 +82,8 @@ python3 -m pip install -r requirements.txt
 
 ### Run with Docker
 
-The image installs `ffmpeg`, runs as a non-root user, and listens on port 8000.
+The image installs `ffmpeg`, `yt-dlp`, and Deno, runs as a non-root user, and
+listens on port 8000.
 
 ```bash
 docker build -t videoextractor .
@@ -108,8 +110,8 @@ flowchart LR
 
 1. `POST /api/jobs` validates the submitted public URL and queues a background
    extraction job.
-2. The scraper reads the page and resolves direct media, HLS, Vimeo, and
-   supported embedded players.
+2. Provider URLs use `yt-dlp`; other pages use the direct media, HLS, Vimeo,
+   and embedded-player resolvers.
 3. Media tracks are written to an isolated temporary job directory.
 4. `ffmpeg` on Linux or Swift/AVFoundation on macOS combines separate tracks
    without transcoding.
@@ -119,6 +121,9 @@ flowchart LR
 
 | Source | Status |
 | --- | --- |
+| Public YouTube videos | Supported through `yt-dlp`, up to the configured resolution and size limits |
+| Public Instagram Reels and videos | Supported through `yt-dlp` |
+| Public Bilibili and Bilibili TV videos | Supported through `yt-dlp`, up to the configured resolution and size limits |
 | Direct HTML video files such as MP4, WebM, and MOV | Supported |
 | HLS `.m3u8` playlists | Supported |
 | Separate HLS video and audio renditions | Supported and automatically combined |
@@ -127,7 +132,7 @@ flowchart LR
 | Multiple discoverable videos on one page | Supported, up to the configured safety limit |
 | DRM or encrypted HLS | Not supported |
 | Login-only, subscription-only, or paywalled media | Not supported |
-| YouTube and providers requiring proprietary extraction logic | Not currently supported |
+| Private, age-gated, or provider-blocked social videos | Not supported without provider authentication |
 
 Provider implementations change over time. A page that works today can require
 an updated resolver later.
@@ -141,6 +146,7 @@ an updated resolver later.
 | `MEDIA_SCRAPER_WORKERS` | `2` | Concurrent extraction workers |
 | `MEDIA_SCRAPER_MAX_JOBS` | `10` | Maximum queued and active jobs |
 | `MEDIA_SCRAPER_MAX_MB` | `500` | Maximum downloaded media per job |
+| `MEDIA_SCRAPER_MAX_HEIGHT` | `720` | Maximum YouTube and Bilibili video height |
 | `MEDIA_SCRAPER_JOB_TTL` | `3600` | Result lifetime in seconds |
 | `MEDIA_SCRAPER_JOB_ROOT` | `download/web` | Temporary job directory |
 
@@ -153,6 +159,7 @@ Example for a small public deployment:
 MEDIA_SCRAPER_WORKERS=1 \
 MEDIA_SCRAPER_MAX_JOBS=4 \
 MEDIA_SCRAPER_MAX_MB=300 \
+MEDIA_SCRAPER_MAX_HEIGHT=720 \
 MEDIA_SCRAPER_JOB_TTL=1800 \
 python3 webapp.py
 ```
@@ -197,6 +204,7 @@ database: none
 MEDIA_SCRAPER_WORKERS: 1
 MEDIA_SCRAPER_MAX_JOBS: 4
 MEDIA_SCRAPER_MAX_MB: 300
+MEDIA_SCRAPER_MAX_HEIGHT: 720
 MEDIA_SCRAPER_JOB_TTL: 1800
 ```
 
@@ -252,7 +260,8 @@ Project layout:
 |-- util/url.py          Direct and HLS downloads
 |-- util/media.py        Cross-platform audio/video muxing
 |-- tests/               Regression tests
-|-- Dockerfile           Linux deployment image with ffmpeg
+|-- requirements-web.txt Web provider extraction dependencies
+|-- Dockerfile           Linux image with ffmpeg, yt-dlp, and Deno
 `-- mediascraper/        Legacy command-line entry points
 ```
 
@@ -274,9 +283,10 @@ MEDIA_SCRAPER_DRIVER=chrome python3 -m mediascraper.general 'https://example.com
 MEDIA_SCRAPER_DRIVER=firefox python3 -m mediascraper.general 'https://example.com/page'
 ```
 
-The Instagram, Twitter, and other legacy modules are retained from the upstream
-project, but their third-party APIs have changed significantly and they are not
-part of the tested VideoExtractor workflow.
+The older Instagram, Twitter, and other service-specific CLI modules are
+retained from the upstream project, but their third-party APIs have changed
+significantly. The web application uses the maintained `yt-dlp` provider path
+instead.
 
 ## Attribution
 

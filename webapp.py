@@ -20,6 +20,7 @@ from util.network import UnsafeURLError, validate_public_url
 from util.url import DownloadTooLargeError
 from video_service import (
     DEFAULT_MAX_DOWNLOAD_BYTES,
+    DEFAULT_MAX_VIDEO_HEIGHT,
     VideoNotFoundError,
     VideoProcessingError,
     extract_videos,
@@ -201,7 +202,12 @@ def _friendly_error(exc):
     return 'An unexpected processing error occurred. Check the server log for details.'
 
 
-def process_job(store, job_id, max_download_bytes=DEFAULT_MAX_DOWNLOAD_BYTES):
+def process_job(
+    store,
+    job_id,
+    max_download_bytes=DEFAULT_MAX_DOWNLOAD_BYTES,
+    max_video_height=DEFAULT_MAX_VIDEO_HEIGHT,
+):
     job = store.get_internal(job_id)
     if job is None:
         return
@@ -229,6 +235,7 @@ def process_job(store, job_id, max_download_bytes=DEFAULT_MAX_DOWNLOAD_BYTES):
             job['directory'],
             progress_callback=report,
             max_download_bytes=max_download_bytes,
+            max_video_height=max_video_height,
         )
         store.complete(job_id, result['title'], result['files'])
     except Exception as exc:
@@ -294,6 +301,7 @@ class MediaScraperHandler(BaseHTTPRequestHandler):
             self.server.job_store,
             job['id'],
             self.server.max_download_bytes,
+            self.server.max_video_height,
         )
         self._send_json(202, job)
 
@@ -489,6 +497,7 @@ def create_server(
     max_active_jobs=10,
     workers=2,
     max_download_bytes=DEFAULT_MAX_DOWNLOAD_BYTES,
+    max_video_height=DEFAULT_MAX_VIDEO_HEIGHT,
 ):
     server = ThreadingHTTPServer((host, port), MediaScraperHandler)
     server.daemon_threads = True
@@ -502,6 +511,7 @@ def create_server(
         thread_name_prefix='media-scraper',
     )
     server.max_download_bytes = max_download_bytes
+    server.max_video_height = max_video_height
     return server
 
 
@@ -512,6 +522,12 @@ def main():
     workers = int(os.environ.get('MEDIA_SCRAPER_WORKERS', '2'))
     max_active_jobs = int(os.environ.get('MEDIA_SCRAPER_MAX_JOBS', '10'))
     max_download_mb = int(os.environ.get('MEDIA_SCRAPER_MAX_MB', '500'))
+    max_video_height = int(
+        os.environ.get(
+            'MEDIA_SCRAPER_MAX_HEIGHT',
+            str(DEFAULT_MAX_VIDEO_HEIGHT),
+        )
+    )
     job_root = os.environ.get('MEDIA_SCRAPER_JOB_ROOT', str(DEFAULT_JOB_ROOT))
 
     server = create_server(
@@ -522,6 +538,7 @@ def main():
         max_active_jobs=max_active_jobs,
         workers=workers,
         max_download_bytes=max_download_mb * 1024 * 1024,
+        max_video_height=max_video_height,
     )
     print('Media Scraper web app: http://{}:{}'.format(host, server.server_port))
     print('Press Ctrl+C to stop.')
