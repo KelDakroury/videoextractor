@@ -7,6 +7,10 @@
 </p>
 
 <p align="center">
+  <a href="https://videoextractor-production.up.railway.app/"><strong>Open the live app</strong></a>
+</p>
+
+<p align="center">
   <a href="https://github.com/KelDakroury/videoextractor/actions/workflows/tests.yml"><img alt="Tests" src="https://github.com/KelDakroury/videoextractor/actions/workflows/tests.yml/badge.svg"></a>
   <img alt="Python 3.9+" src="https://img.shields.io/badge/Python-3.9%2B-17211c?style=flat-square">
   <img alt="Docker ready" src="https://img.shields.io/badge/Docker-ready-17211c?style=flat-square">
@@ -15,6 +19,7 @@
 </p>
 
 <p align="center">
+  <a href="https://videoextractor-production.up.railway.app/">Live app</a> &middot;
   <a href="#quick-start">Quick start</a> &middot;
   <a href="#how-it-works">How it works</a> &middot;
   <a href="#deployment">Deployment</a> &middot;
@@ -178,6 +183,9 @@ status becomes `ready` or `failed`.
 
 VideoExtractor is designed for a small, single-instance container deployment.
 Railway, Render, Fly.io, and similar Docker hosts can run the included image.
+
+The public deployment is available at
+<https://videoextractor-production.up.railway.app/>.
 
 Recommended deployment settings:
 
