@@ -3,6 +3,7 @@ FROM python:3.12-slim
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     MEDIA_SCRAPER_HOST=0.0.0.0 \
+    MEDIA_SCRAPER_JOB_ROOT=/tmp/videoextractor \
     PORT=8000
 
 RUN apt-get update \
@@ -11,7 +12,8 @@ RUN apt-get update \
 
 WORKDIR /app
 
-RUN useradd --create-home --uid 10001 app
+RUN useradd --create-home --uid 10001 app \
+    && install -d -o app -g app /tmp/videoextractor
 COPY --chown=app:app . .
 
 USER app

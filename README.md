@@ -139,6 +139,9 @@ an updated resolver later.
 | `MEDIA_SCRAPER_JOB_TTL` | `3600` | Result lifetime in seconds |
 | `MEDIA_SCRAPER_JOB_ROOT` | `download/web` | Temporary job directory |
 
+The Docker image overrides `MEDIA_SCRAPER_JOB_ROOT` with the writable,
+ephemeral path `/tmp/videoextractor`.
+
 Example for a small public deployment:
 
 ```bash
